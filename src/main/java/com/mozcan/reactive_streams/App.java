@@ -1,4 +1,4 @@
-package com.mozcan.reactive_stream;
+package com.mozcan.reactive_streams;
 
 /**
  * Hello world!

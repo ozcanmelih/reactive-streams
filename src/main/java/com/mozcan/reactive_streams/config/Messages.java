@@ -1,4 +1,4 @@
-package com.mozcan.reactive_stream.config;
+package com.mozcan.reactive_streams.config;
 
 import java.io.IOException;
 import java.io.InputStream;

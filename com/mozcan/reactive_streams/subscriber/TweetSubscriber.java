@@ -1,8 +1,8 @@
-package com.mozcan.reactive_streams;
+package com.mozcan.reactive_streams.subscriber;
 
-import java.util.UUID;
 import java.util.concurrent.Flow.Subscriber;
 import java.util.concurrent.Flow.Subscription;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -12,25 +12,36 @@ public class TweetSubscriber implements Subscriber<Tweet> {
 
 	private Logger logger = Logger.getLogger(getClass().getName());
 
-	private final String id = UUID.randomUUID().toString();
+	private String name;
+	private int sleep;
+	private int backPressure;
+
 	private Subscription subscription;
-	private static final int SUB_REQ = 5; // backpressure
-	private static final int SLEEP = 1000;
+
+	private AtomicInteger counter = new AtomicInteger();
+
+	public TweetSubscriber(String id, int sleep, int backPressure) {
+		this.name = id;
+		this.sleep = sleep;
+		this.backPressure = backPressure;
+	}
 
 	public void onSubscribe(Subscription subscription) {
-		logger.info("subscriber: " + id + " ==> Subscribed");
+		logger.info("[" + name + "] subscribed");
 		this.subscription = subscription;
-		subscription.request(SUB_REQ);
+		subscription.request(backPressure);
 
 	}
 
 	public void onNext(Tweet tweet) {
-		takeRest();
+		int totalCount = counter.incrementAndGet();
 
-		logger.info("---------------------------------------------------------------");
-		logger.info(tweet.toString());
-		logger.info("---------------------------------------------------------------");
-		subscription.request(SUB_REQ);
+		logger.info("[" + name + "] " + tweet.toString());
+
+		if (totalCount % backPressure == 0) {
+			takeRest();
+			subscription.request(backPressure);
+		}
 	}
 
 	public void onError(Throwable throwable) {
@@ -38,18 +49,18 @@ public class TweetSubscriber implements Subscriber<Tweet> {
 	}
 
 	public void onComplete() {
-		logger.info("Done!");
+		logger.info("Completed!");
 	}
 
 	private void takeRest() {
 		try {
-			Thread.sleep(SLEEP);
+			Thread.sleep(sleep);
 		} catch (InterruptedException e) {
 			logger.log(Level.SEVERE, "An error has occured: {}", e);
 		}
 	}
 
-	public String getId() {
-		return id;
+	public String getName() {
+		return name;
 	}
 }
